@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Maker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .new-decision-box {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .new-decision-box h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        #decisionPrompt {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        #decisionPrompt:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .decisions-list {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .decisions-list h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .decision-item {
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .decision-item:hover {
+            background: #f8f9fa;
+            border-color: #007bff;
+            transform: translateX(5px);
+        }
+
+        .decision-item h3 {
+            color: #007bff;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .decision-item .date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .decision-tree {
+            margin-top: 20px;
+        }
+
+        .tree-node {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 4px solid #007bff;
+        }
+
+        .tree-question {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .tree-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-yes,
+        .btn-no {
+            flex: 1;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-yes {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-yes:hover {
+            background: #218838;
+        }
+
+        .btn-no {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-no:hover {
+            background: #c82333;
+        }
+
+        .determination {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .determination.affirmative {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .determination.negative {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+
+        .determination h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .determination p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .consideration-topics {
+            margin-top: 15px;
+        }
+
+        .consideration-topic {
+            background: white;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+
+        .consideration-topic strong {
+            color: #007bff;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+
+        .breadcrumb {
+            background: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .breadcrumb-item {
+            cursor: pointer;
+            color: #007bff;
+            transition: color 0.2s;
+        }
+        
+        .breadcrumb-item:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+        
+        .breadcrumb-separator {
+            color: #999;
+        }
+
+        .btn-back {
+            background: #6c757d;
+            color: white;
+            margin-top: 15px;
+        }
+
+        .btn-back:hover {
+            background: #5a6268;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Decision Maker</h1>
+
+    <div class="new-decision-box">
+        <h2>Make New Decision</h2>
+        <div class="input-group">
+            <input type="text" id="decisionPrompt"
+                placeholder="Enter your decision prompt (e.g., Should I buy a new car?)">
+            <button class="btn btn-primary" id="createDecisionBtn">Create Decision</button>
+        </div>
+    </div>
+
+    <div class="decisions-list">
+        <h2>Previous Decisions</h2>
+        <div id="decisionsContainer">
+            <div class="loading">Loading decisions...</div>
+        </div>
+    </div>
+
+    <div class="modal" id="decisionModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeModal">&times;</button>
+            <h2 id="modalTitle">Decision Tree</h2>
+            <div class="breadcrumb" id="breadcrumb" style="display: none;"></div>
+            <div id="modalBody">
+                <div class="loading">Loading decision tree...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        let currentDecision = null;
+        let decisionHistory = [];
+
+        async function getAuthToken() {
+            let token = localStorage.getItem('auth_token');
+
+            if (!token) {
+                try {
+                    const response = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to login');
+                    }
+
+                    const data = await response.json();
+                    token = data.access_token;
+                    localStorage.setItem('auth_token', token);
+                    localStorage.setItem('user_id', data.user_id);
+                } catch (error) {
+                    console.error('Login error:', error);
+                    throw error;
+                }
+            }
+
+            return token;
+        }
+
+        async function apiRequest(url, options = {}) {
+            const token = await getAuthToken();
+
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+
+            const response = await fetch(url, {
+                ...options,
+                headers
+            });
+
+            if (response.status === 401) {
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('user_id');
+                return apiRequest(url, options);
+            }
+
+            return response;
+        }
+
+        async function loadDecisions() {
+            try {
+                const response = await apiRequest(`${API_BASE}/decision/`);
+
+                if (!response.ok) {
+                    throw new Error('Failed to load decisions');
+                }
+
+                const decisions = await response.json();
+                decisionHistory = decisions;
+                renderDecisions(decisions);
+            } catch (error) {
+                console.error('Error loading decisions:', error);
+                document.getElementById('decisionsContainer').innerHTML =
+                    '<div class="error">Failed to load decisions. Please try again.</div>';
+            }
+        }
+
+        function renderDecisions(decisions) {
+            const container = document.getElementById('decisionsContainer');
+
+            if (decisions.length === 0) {
+                container.innerHTML = '<div class="empty-state">No decisions yet. Create your first decision above!</div>';
+                return;
+            }
+
+            container.innerHTML = decisions
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                .map(decision => `
+                    <div class="decision-item" data-id="${decision.id}">
+                        <h3>${escapeHtml(decision.prompt)}</h3>
+                        <div class="date">Created: ${new Date(decision.created_at).toLocaleString()}</div>
+                    </div>
+                `).join('');
+
+            document.querySelectorAll('.decision-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const decisionId = item.dataset.id;
+                    openDecision(decisionId);
+                });
+            });
+        }
+
+        async function createDecision() {
+            const prompt = document.getElementById('decisionPrompt').value.trim();
+
+            if (!prompt) {
+                alert('Please enter a decision prompt');
+                return;
+            }
+
+            const btn = document.getElementById('createDecisionBtn');
+            btn.disabled = true;
+            btn.textContent = 'Creating...';
+
+            try {
+                const response = await apiRequest(`${API_BASE}/decision/?prompt=${encodeURIComponent(prompt)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create decision');
+                }
+
+                const decision = await response.json();
+                document.getElementById('decisionPrompt').value = '';
+
+                await loadDecisions();
+
+                openDecisionWithData(decision);
+            } catch (error) {
+                console.error('Error creating decision:', error);
+                alert('Failed to create decision. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Decision';
+            }
+        }
+
+        async function openDecision(decisionId) {
+            const modal = document.getElementById('decisionModal');
+            const modalBody = document.getElementById('modalBody');
+            const modalTitle = document.getElementById('modalTitle');
+
+            modal.classList.add('active');
+            modalBody.innerHTML = '<div class="loading">Loading decision tree...</div>';
+
+            try {
+                const response = await apiRequest(`${API_BASE}/decision/${decisionId}`);
+
+                if (!response.ok) {
+                    throw new Error('Failed to load decision');
+                }
+
+                const decision = await response.json();
+                openDecisionWithData(decision);
+            } catch (error) {
+                console.error('Error loading decision:', error);
+                modalBody.innerHTML = '<div class="error">Failed to load decision tree. Please try again.</div>';
+            }
+        }
+
+        function openDecisionWithData(decision) {
+            currentDecision = decision;
+            const modal = document.getElementById('decisionModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const breadcrumb = document.getElementById('breadcrumb');
+
+            modal.classList.add('active');
+            modalTitle.textContent = decision.prompt;
+            breadcrumb.style.display = 'none';
+
+            renderTreeNode(decision.flow_chart, []);
+        }
+
+        function renderTreeNode(node, path) {
+            const modalBody = document.getElementById('modalBody');
+            const breadcrumb = document.getElementById('breadcrumb');
+
+            if (path.length > 0) {
+                breadcrumb.style.display = 'flex';
+                breadcrumb.innerHTML = '<span style="color: #666;">Path: </span>' +
+                    '<span class="breadcrumb-item" data-index="-1">Start</span>' +
+                    path.map((step, index) => `
+                        <span class="breadcrumb-separator">→</span>
+                        <span class="breadcrumb-item" data-index="${index}">${escapeHtml(step)}</span>
+                    `).join('');
+                
+                breadcrumb.querySelectorAll('.breadcrumb-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const index = parseInt(item.dataset.index);
+                        if (index === -1) {
+                            renderTreeNode(currentDecision.flow_chart, []);
+                        } else {
+                            navigateToPathIndex(path, index);
+                        }
+                    });
+                });
+            } else {
+                breadcrumb.style.display = 'none';
+            }
+
+            if (node.question) {
+                modalBody.innerHTML = `
+                    <div class="tree-node">
+                        <div class="tree-question">${escapeHtml(node.question)}</div>
+                        <div class="tree-buttons">
+                            <button class="btn btn-yes" id="btnYes">Yes</button>
+                            <button class="btn btn-no" id="btnNo">No</button>
+                        </div>
+                    </div>
+                    ${path.length > 0 ? '<button class="btn btn-back" id="btnBack">← Back</button>' : ''}
+                `;
+
+                document.getElementById('btnYes').addEventListener('click', () => {
+                    renderTreeNode(node.if_yes, [...path, 'Yes']);
+                });
+
+                document.getElementById('btnNo').addEventListener('click', () => {
+                    renderTreeNode(node.if_no, [...path, 'No']);
+                });
+
+                if (path.length > 0) {
+                    document.getElementById('btnBack').addEventListener('click', () => {
+                        reconstructPath([...path]);
+                    });
+                }
+            } else if (node.result) {
+                renderDetermination(node, path);
+            }
+        }
+
+        function renderDetermination(determination, path) {
+            const modalBody = document.getElementById('modalBody');
+            let html = '';
+
+            if (determination.result === 'affirmative') {
+                html = `
+                    <div class="determination affirmative">
+                        <h3>✓ Decision: ${escapeHtml(determination.name)}</h3>
+                        <p>${escapeHtml(determination.reasoning)}</p>
+                    </div>
+                `;
+            } else if (determination.result === 'negative') {
+                html = `
+                    <div class="determination negative">
+                        <h3>✗ Not Recommended</h3>
+                        <p>${escapeHtml(determination.reasoning)}</p>
+                    </div>
+                `;
+            } else if (determination.result === 'requires_deeper_consideration') {
+                html = `
+                    <div class="determination">
+                        <h3>⚠ Requires Deeper Consideration</h3>
+                        <p>${escapeHtml(determination.reasoning)}</p>
+                        ${determination.consideration_topics && determination.consideration_topics.length > 0 ? `
+                            <div class="consideration-topics">
+                                <h4>Topics to Consider:</h4>
+                                ${determination.consideration_topics.map(topic => `
+                                    <div class="consideration-topic">
+                                        <strong>${escapeHtml(topic.name)}:</strong>
+                                        ${escapeHtml(topic.description)}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            html += path.length > 0 ? '<button class="btn btn-back" id="btnBack">← Back</button>' : '';
+
+            modalBody.innerHTML = html;
+
+            if (path.length > 0) {
+                document.getElementById('btnBack').addEventListener('click', () => {
+                    reconstructPath([...path]);
+                });
+            }
+        }
+
+        function reconstructPath(path) {
+            if (path.length === 0) {
+                renderTreeNode(currentDecision.flow_chart, []);
+                return;
+            }
+
+            const lastAnswer = path.pop();
+            let node = currentDecision.flow_chart;
+
+            for (const answer of path) {
+                if (answer === 'Yes') {
+                    node = node.if_yes;
+                } else {
+                    node = node.if_no;
+                }
+            }
+
+            renderTreeNode(node, path);
+        }
+
+        function navigateToPathIndex(currentPath, targetIndex) {
+            const pathToNavigate = currentPath.slice(0, targetIndex + 1);
+            let node = currentDecision.flow_chart;
+            
+            for (const step of pathToNavigate) {
+                if (step === 'Yes') {
+                    node = node.if_yes;
+                } else {
+                    node = node.if_no;
+                }
+            }
+            
+            renderTreeNode(node, pathToNavigate);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        document.getElementById('createDecisionBtn').addEventListener('click', createDecision);
+
+        document.getElementById('decisionPrompt').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                createDecision();
+            }
+        });
+
+        document.getElementById('closeModal').addEventListener('click', () => {
+            document.getElementById('decisionModal').classList.remove('active');
+        });
+
+        document.getElementById('decisionModal').addEventListener('click', (e) => {
+            if (e.target.id === 'decisionModal') {
+                document.getElementById('decisionModal').classList.remove('active');
+            }
+        });
+
+        loadDecisions();
+    </script>
+</body>
+
+</html>
