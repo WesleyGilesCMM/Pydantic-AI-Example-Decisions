@@ -26,10 +26,17 @@ app.include_router(decision_router)
 
 templates = Jinja2Templates(directory="api/templates")
 
+
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+
 @app.get("/present", response_class=HTMLResponse)
 async def present(request: Request):
     return templates.TemplateResponse("presentation.html", {"request": request})
+
+
+@app.get("/lightning-talk", response_class=HTMLResponse)
+async def lightning_talk(request: Request):
+    return templates.TemplateResponse("lightning-talk.html", {"request": request})
